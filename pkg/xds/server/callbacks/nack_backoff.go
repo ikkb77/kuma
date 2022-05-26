@@ -1,6 +1,7 @@
 package callbacks
 
 import (
+	"strings"
 	"time"
 
 	"github.com/kumahq/kuma/pkg/core"
@@ -20,6 +21,16 @@ func NewNackBackoff(backoff time.Duration) util_xds.Callbacks {
 	return &nackBackoff{
 		backoff: backoff,
 	}
+}
+
+func (n *nackBackoff) OnStreamRequest(_ int64, request util_xds.DiscoveryRequest) error {
+	nackLog.Info("XDS TEST", "nodeID", request.NodeId(), "type", request.GetTypeUrl())
+	if strings.HasPrefix(request.NodeId(), "graceful.graceful") && request.GetTypeUrl() == "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret" {
+		//nackLog.Info("Slowing down response")
+		//time.Sleep(2 * time.Minute)
+		//return errors.New("NOPE")
+	}
+	return nil
 }
 
 func (n *nackBackoff) OnStreamResponse(_ int64, request util_xds.DiscoveryRequest, _ util_xds.DiscoveryResponse) {

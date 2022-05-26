@@ -103,10 +103,11 @@ spec:
 		})
 
 		err := NewClusterSetup().
-			Install(MeshKubernetes(mesh)).
+			Install(MTLSMeshKubernetes(mesh)).
 			Install(NamespaceWithSidecarInjection(namespace)).
 			Install(YamlK8s(gateway)).
 			Install(YamlK8s(gatewayInstnace(1))).
+			//Install(DemoClientK8s(mesh, namespace)).
 			Install(testserver.Install(
 				testserver.WithNamespace(namespace),
 				testserver.WithMesh(mesh),
@@ -172,27 +173,37 @@ spec:
 				}
 			}()
 
-			// when
-			Expect(given.scaleFn(2)).To(Succeed())
+			occurences := 100
+			maxPods := 10
+			for i := 0; i < occurences; i++ {
+				Logf("Round %d\n", i+1)
+				// when
+				Expect(given.scaleFn(maxPods)).To(Succeed())
 
-			// then
-			Eventually(func(g Gomega) {
-				g.Expect(WaitNumPods(namespace, 2, given.deploymentName)(env.Cluster)).To(Succeed())
-				g.Expect(WaitPodsAvailable(namespace, given.deploymentName)(env.Cluster)).To(Succeed())
-			}, "30s", "1s").Should(Succeed())
-			Expect(failedErr).ToNot(HaveOccurred())
+				// then
+				Expect(WaitNumPods(namespace, maxPods, given.deploymentName)(env.Cluster)).To(Succeed())
+				Expect(WaitPodsAvailable(namespace, given.deploymentName)(env.Cluster)).To(Succeed())
+				//Eventually(func(g Gomega) {
+				//	g.Expect(WaitNumPods(namespace, maxPods, given.deploymentName)(env.Cluster)).To(Succeed())
+				//	g.Expect(WaitPodsAvailable(namespace, given.deploymentName)(env.Cluster)).To(Succeed())
+				//}, "30s", "1s").Should(Succeed())
+				Expect(failedErr).ToNot(HaveOccurred())
 
-			// when
-			Expect(given.scaleFn(1)).To(Succeed())
+				time.Sleep(10 * time.Second)
 
-			// then
-			Eventually(func(g Gomega) {
-				g.Expect(WaitNumPods(namespace, 1, given.deploymentName)(env.Cluster)).To(Succeed())
-			}, "60s", "1s").Should(Succeed())
+				// when
+				Expect(given.scaleFn(1)).To(Succeed())
 
-			Expect(failedErr).ToNot(HaveOccurred())
+				// then
+				//Expect(WaitNumPods(namespace, 1, given.deploymentName)(env.Cluster)).To(Succeed())
+				Eventually(func(g Gomega) {
+					g.Expect(WaitNumPods(namespace, 1, given.deploymentName)(env.Cluster)).To(Succeed())
+				}, "120s", "1s").Should(Succeed())
+
+				Expect(failedErr).ToNot(HaveOccurred())
+			}
 		},
-		Entry("a service", testCase{
+		FEntry("a service", testCase{
 			deploymentName: name,
 			scaleFn: func(replicas int) error {
 				return k8s.RunKubectlE(
