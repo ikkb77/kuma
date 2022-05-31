@@ -105,6 +105,11 @@ func newInstallMetrics(pctx *kumactl_cmd.RootContext) *cobra.Command {
 	cmd.Flags().StringVar(&args.LokiAddress, "loki-address", args.LokiAddress, "the address of the loki to query")
 	cmd.Flags().BoolVar(&args.WithoutPrometheus, "without-prometheus", args.WithoutPrometheus, "disable Prometheus resources generation")
 	cmd.Flags().BoolVar(&args.WithoutGrafana, "without-grafana", args.WithoutGrafana, "disable Grafana resources generation")
+
+	cmd.Print("# ") // HACK: by default cobra for deprecated commands will output a warning here:
+	// https://github.com/spf13/cobra/blob/5b11656e45a6a6579298a3b28c71f456ff196ad6/command.go#L785
+	// so this adds '#' to the generated output so we don't fail on this:
+	// kumactl install tracing | kubectl apply -f -
 	return cmd
 }
 

@@ -52,5 +52,9 @@ func newInstallTracing(pctx *kumactl_cmd.RootContext) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&args.Namespace, "namespace", args.Namespace, "namespace to install tracing to")
+	cmd.Print("# ") // HACK: by default cobra for deprecated commands will output a warning here:
+	// https://github.com/spf13/cobra/blob/5b11656e45a6a6579298a3b28c71f456ff196ad6/command.go#L785
+	// so this adds '#' to the generated output so we don't fail on this:
+	// kumactl install tracing | kubectl apply -f -
 	return cmd
 }
