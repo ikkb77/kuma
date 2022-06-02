@@ -26,7 +26,7 @@ import (
 )
 
 type PortFwd struct {
-	apiServerTunnel   *k8s.Tunnel
+	ApiServerTunnel   *k8s.Tunnel
 	ApiServerEndpoint string `json:"apiServerEndpoint"`
 }
 
@@ -85,9 +85,9 @@ func (c *K8sControlPlane) PortForwardKumaCP() {
 	// There could be multiple pods still starting so pick one that's available already
 	for i := range kumaCpPods {
 		if k8s.IsPodAvailable(&kumaCpPods[i]) {
-			c.portFwd.apiServerTunnel = k8s.NewTunnel(c.GetKubectlOptions(Config.KumaNamespace), k8s.ResourceTypePod, kumaCpPods[i].Name, 0, 5681)
-			c.portFwd.apiServerTunnel.ForwardPort(c.t)
-			c.portFwd.ApiServerEndpoint = c.portFwd.apiServerTunnel.Endpoint()
+			c.portFwd.ApiServerTunnel = k8s.NewTunnel(c.GetKubectlOptions(Config.KumaNamespace), k8s.ResourceTypePod, kumaCpPods[i].Name, 0, 5681)
+			c.portFwd.ApiServerTunnel.ForwardPort(c.t)
+			c.portFwd.ApiServerEndpoint = c.portFwd.ApiServerTunnel.Endpoint()
 			return
 		}
 	}
@@ -95,8 +95,8 @@ func (c *K8sControlPlane) PortForwardKumaCP() {
 }
 
 func (c *K8sControlPlane) ClosePortForwards() {
-	if c.portFwd.apiServerTunnel != nil {
-		c.portFwd.apiServerTunnel.Close()
+	if c.portFwd.ApiServerTunnel != nil {
+		c.portFwd.ApiServerTunnel.Close()
 	}
 }
 
@@ -169,6 +169,7 @@ func (c *K8sControlPlane) FinalizeAdd() error {
 }
 
 func (c *K8sControlPlane) FinalizeAddWithPortFwd(portFwd PortFwd) error {
+	println(portFwd.ApiServerEndpoint)
 	c.portFwd = portFwd
 	var token string
 	t, err := c.retrieveAdminToken()

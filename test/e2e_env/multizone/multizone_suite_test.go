@@ -24,11 +24,19 @@ func TestE2E(t *testing.T) {
 }
 
 type State struct {
-	Global    UniversalCPNetworking
-	UniZone1  UniversalCPNetworking
-	UniZone2  UniversalCPNetworking
-	KubeZone1 PortFwd
-	KubeZone2 PortFwd
+	Global           UniversalCPNetworking
+	UniZone1         UniversalCPNetworking
+	UniZone2         UniversalCPNetworking
+	KubeZone1        PortFwd
+	KubeZone2        PortFwd
+	KubeZone1Egress  PortFwd
+	KubeZone1Ingress PortFwd
+	KubeZone2Egress  PortFwd
+	KubeZone2Ingress PortFwd
+	UniZone1Egress   UniversalCPNetworking
+	UniZone1Ingress  UniversalCPNetworking
+	UniZone2Egress   UniversalCPNetworking
+	UniZone2Ingress  UniversalCPNetworking
 }
 
 var _ = SynchronizedBeforeSuite(
@@ -96,6 +104,8 @@ var _ = SynchronizedBeforeSuite(
 				Install(Kuma(core.Zone,
 					WithGlobalAddress(env.Global.GetKuma().GetKDSServerAddress()),
 					WithEnv("KUMA_STORE_UNSAFE_DELETE", "true"),
+					WithEgressEnvoyAdminTunnel(),
+					WithIngressEnvoyAdminTunnel(),
 				)).
 				Install(IngressUniversal(env.Global.GetKuma().GenerateZoneIngressToken)).
 				Install(EgressUniversal(env.Global.GetKuma().GenerateZoneEgressToken)).
@@ -106,11 +116,19 @@ var _ = SynchronizedBeforeSuite(
 		wg.Wait()
 
 		state := State{
-			Global:    env.Global.GetKuma().(*UniversalControlPlane).Networking(),
-			UniZone1:  env.UniZone1.GetKuma().(*UniversalControlPlane).Networking(),
-			UniZone2:  env.UniZone2.GetKuma().(*UniversalControlPlane).Networking(),
-			KubeZone1: env.KubeZone1.GetKuma().(*K8sControlPlane).PortFwd(),
-			KubeZone2: env.KubeZone2.GetKuma().(*K8sControlPlane).PortFwd(),
+			Global:           env.Global.GetKuma().(*UniversalControlPlane).Networking(),
+			UniZone1:         env.UniZone1.GetKuma().(*UniversalControlPlane).Networking(),
+			UniZone2:         env.UniZone2.GetKuma().(*UniversalControlPlane).Networking(),
+			KubeZone1:        env.KubeZone1.GetKuma().(*K8sControlPlane).PortFwd(),
+			KubeZone2:        env.KubeZone2.GetKuma().(*K8sControlPlane).PortFwd(),
+			KubeZone1Egress:  env.KubeZone1.GetZoneEgressPortForward(),
+			KubeZone1Ingress: env.KubeZone1.GetZoneIngressPortForward(),
+			KubeZone2Egress:  env.KubeZone2.GetZoneEgressPortForward(),
+			KubeZone2Ingress: env.KubeZone2.GetZoneIngressPortForward(),
+			UniZone1Egress:   env.UniZone1.GetZoneEgressNetworking(),
+			UniZone1Ingress:  env.UniZone1.GetZoneIngressNetworking(),
+			UniZone2Egress:   env.UniZone2.GetZoneEgressNetworking(),
+			UniZone2Ingress:  env.UniZone2.GetZoneIngressNetworking(),
 		}
 		bytes, err := json.Marshal(state)
 		Expect(err).ToNot(HaveOccurred())
@@ -147,6 +165,8 @@ var _ = SynchronizedBeforeSuite(
 		)
 		Expect(kubeCp.FinalizeAddWithPortFwd(state.KubeZone1)).To(Succeed())
 		env.KubeZone1.SetCP(kubeCp)
+		env.KubeZone1.AddPortForward(state.KubeZone1Egress, Config.ZoneEgressApp)
+		env.KubeZone1.AddPortForward(state.KubeZone1Ingress, Config.ZoneIngressApp)
 
 		env.KubeZone2 = NewK8sCluster(NewTestingT(), Kuma2, Verbose)
 		kubeCp = NewK8sControlPlane(
@@ -160,6 +180,8 @@ var _ = SynchronizedBeforeSuite(
 		)
 		Expect(kubeCp.FinalizeAddWithPortFwd(state.KubeZone2)).To(Succeed())
 		env.KubeZone2.SetCP(kubeCp)
+		env.KubeZone2.AddPortForward(state.KubeZone2Egress, Config.ZoneEgressApp)
+		env.KubeZone2.AddPortForward(state.KubeZone2Ingress, Config.ZoneIngressApp)
 
 		env.UniZone1 = NewUniversalCluster(NewTestingT(), Kuma4, Silent)
 		E2EDeferCleanup(env.UniZone1.DismissCluster) // clean up any containers if needed
@@ -172,6 +194,8 @@ var _ = SynchronizedBeforeSuite(
 		)
 		Expect(err).ToNot(HaveOccurred())
 		env.UniZone1.SetCp(cp)
+		env.UniZone1.AddNetworking(state.UniZone1Egress, Config.ZoneEgressApp)
+		env.UniZone1.AddNetworking(state.UniZone1Ingress, Config.ZoneIngressApp)
 
 		env.UniZone2 = NewUniversalCluster(NewTestingT(), Kuma5, Silent)
 		E2EDeferCleanup(env.UniZone2.DismissCluster) // clean up any containers if needed
@@ -184,6 +208,8 @@ var _ = SynchronizedBeforeSuite(
 		)
 		Expect(err).ToNot(HaveOccurred())
 		env.UniZone2.SetCp(cp)
+		env.UniZone2.AddNetworking(state.UniZone2Egress, Config.ZoneEgressApp)
+		env.UniZone2.AddNetworking(state.UniZone2Ingress, Config.ZoneIngressApp)
 	},
 )
 

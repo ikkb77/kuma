@@ -33,6 +33,7 @@ type UniversalCluster struct {
 	opts           kumaDeploymentOptions
 
 	envoyTunnels map[string]envoy_admin.Tunnel
+	networking   map[string]UniversalCPNetworking
 }
 
 var _ Cluster = &UniversalCluster{}
@@ -47,6 +48,7 @@ func NewUniversalCluster(t *TestingT, name string, verbose bool) *UniversalClust
 		defaultRetries: Config.DefaultClusterStartupRetries,
 		defaultTimeout: Config.DefaultClusterStartupTimeout,
 		envoyTunnels:   map[string]envoy_admin.Tunnel{},
+		networking:     map[string]UniversalCPNetworking{},
 	}
 }
 
@@ -436,29 +438,55 @@ func (c *UniversalCluster) DeleteDeployment(name string) error {
 	return nil
 }
 
+func (c *UniversalCluster) GetZoneIngressNetworking() UniversalCPNetworking {
+	return c.networking[Config.ZoneIngressApp]
+}
+
+func (c *UniversalCluster) GetZoneEgressNetworking() UniversalCPNetworking {
+	return c.networking[Config.ZoneEgressApp]
+}
+
+func (c *UniversalCluster) AddNetworking(networking UniversalCPNetworking, name string) {
+	c.networking[name] = networking
+	c.createEnvoyTunnel(name)
+}
+
 func (c *UniversalCluster) addEgressEnvoyTunnel() error {
 	app := c.apps[AppEgress]
+	c.networking[Config.ZoneEgressApp] = UniversalCPNetworking{
+		IP:            "localhost",
+		ApiServerPort: app.GetPublicPort(sshPort),
+		SshPort:       sshPort,
+	}
 
-	t, err := tunnel.NewUniversalEnvoyAdminTunnel(c.t, app.GetPublicPort(sshPort), c.verbose)
+	err := c.createEnvoyTunnel(Config.ZoneEgressApp)
 	if err != nil {
 		return err
 	}
-
-	c.envoyTunnels[Config.ZoneEgressApp] = t
-
 	return nil
 }
 
 func (c *UniversalCluster) addIngressEnvoyTunnel() error {
 	app := c.apps[AppIngress]
+	c.networking[Config.ZoneIngressApp] = UniversalCPNetworking{
+		IP:            "localhost",
+		ApiServerPort: app.GetPublicPort(sshPort),
+		SshPort:       sshPort,
+	}
 
-	t, err := tunnel.NewUniversalEnvoyAdminTunnel(c.t, app.GetPublicPort(sshPort), c.verbose)
+	err := c.createEnvoyTunnel(Config.ZoneIngressApp)
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	c.envoyTunnels[Config.ZoneIngressApp] = t
-
+func (c *UniversalCluster) createEnvoyTunnel(name string) error {
+	t, err := tunnel.NewUniversalEnvoyAdminTunnel(c.t, c.networking[name].ApiServerPort, c.verbose)
+	if err != nil {
+		return err
+	}
+	c.envoyTunnels[name] = t
 	return nil
 }
 
