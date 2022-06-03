@@ -112,7 +112,7 @@ func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, erro
 					{
 						TargetSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_{
 							GoogleGrpc: &envoy_core_v3.GrpcService_GoogleGrpc{
-								TargetUri:              "5.161.75.233:5678",
+								TargetUri:              "host.kuma-cp.system:5678",
 								StatPrefix:             "ads",
 								CredentialsFactoryName: "envoy.grpc_credentials.file_based_metadata",
 								CallCredentials: []*envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials{
