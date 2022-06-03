@@ -9,6 +9,7 @@ import (
 	envoy_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	envoy_grpc_credentials_v3 "github.com/envoyproxy/go-control-plane/envoy/config/grpc_credential/v3"
 	envoy_metrics_v3 "github.com/envoyproxy/go-control-plane/envoy/config/metrics/v3"
 	envoy_tls "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
@@ -18,6 +19,12 @@ import (
 )
 
 func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, error) {
+	test := envoy_grpc_credentials_v3.FileBasedMetadataConfig{
+		SecretData: &envoy_core_v3.DataSource{
+			Specifier: &envoy_core_v3.DataSource_Filename{Filename: "/tmp/test-token"},
+		},
+	}
+
 	res := &envoy_bootstrap_v3.Bootstrap{
 		Node: &envoy_core_v3.Node{
 			Id:      parameters.Id,
@@ -95,16 +102,90 @@ func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, erro
 				TransportApiVersion:       envoy_core_v3.ApiVersion_V3,
 				SetNodeOnFirstMessageOnly: true,
 				GrpcServices: []*envoy_core_v3.GrpcService{
+					// {
+					// 	TargetSpecifier: &envoy_core_v3.GrpcService_EnvoyGrpc_{
+					// 		EnvoyGrpc: &envoy_core_v3.GrpcService_EnvoyGrpc{
+					// 			ClusterName: "ads_cluster",
+					// 		},
+					// 	},
+					// },
 					{
-						TargetSpecifier: &envoy_core_v3.GrpcService_EnvoyGrpc_{
-							EnvoyGrpc: &envoy_core_v3.GrpcService_EnvoyGrpc{
-								ClusterName: "ads_cluster",
+						TargetSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_{
+							GoogleGrpc: &envoy_core_v3.GrpcService_GoogleGrpc{
+								TargetUri:              "5.161.75.233:5678",
+								StatPrefix:             "ads",
+								CredentialsFactoryName: "envoy.grpc_credentials.file_based_metadata",
+								CallCredentials: []*envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials{
+									{
+										CredentialSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_FromPlugin{
+											FromPlugin: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin{
+												Name: "envoy.grpc_credentials.file_based_metadata",
+												ConfigType: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig{
+													TypedConfig: util_proto.MustMarshalAny(&test),
+												},
+											},
+										},
+									},
+								},
+								ChannelCredentials: &envoy_core_v3.GrpcService_GoogleGrpc_ChannelCredentials{
+									CredentialSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials{
+										SslCredentials: &envoy_core_v3.GrpcService_GoogleGrpc_SslCredentials{
+											RootCerts: &envoy_core_v3.DataSource{
+												Specifier: &envoy_core_v3.DataSource_InlineString{
+													InlineString: `-----BEGIN CERTIFICATE-----
+MIIDYTCCAkmgAwIBAgIRAKLYiwVtjQ8Qo27W/3udjs0wDQYJKoZIhvcNAQELBQAw
+KTEnMCUGA1UEAxMea3VtYS1jb250cm9sLXBsYW5lLnRlc3Quc2VydmVyMB4XDTIy
+MDYwMzE0MzkyMloXDTMyMDUzMTE0MzkyMlowKTEnMCUGA1UEAxMea3VtYS1jb250
+cm9sLXBsYW5lLnRlc3Quc2VydmVyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEA3CFIj9ribTMRoN3GXEzGT2Voc251InaYT7lXBjrnnlbr2SRp/Q8aoy2G
+0ty/xc2kHtTjLOoxefwHUWHP9pV1POlajkn95N+OyMivkDrx517CFphao/6W4AWm
+jDODGS7gT2af7PxHpiZdwjzhLzyf70PrLPzb6JtGjc8i2iXH8zxoJ0JztaLehpbc
+O9BV5HCHAiRVv04ioNXTWPDLbARyDtoenkIsc6iGOppfMl+H8Cy7j6yCYi4sI6Wj
+EYMWxgVcmjmtpHG2CmNvliuPTgwrImh7W6PLUj2msrFxZAhdIIKirHjqN5WNcqH9
+Oxl4eAU4isnmKsDsigluG6vFh0sxnQIDAQABo4GDMIGAMA4GA1UdDwEB/wQEAwIC
+pDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
+BBRm+iZ0uUt2fRnVpFWOBaoMEVGZ0zApBgNVHREEIjAggh5rdW1hLWNvbnRyb2wt
+cGxhbmUudGVzdC5zZXJ2ZXIwDQYJKoZIhvcNAQELBQADggEBAJmxN4mXqpjF5jjk
+fJObWxPUjT/0upQNgH2Knvf8IyTC0QmNADkUg8rbSuXA5ELg/8AveF2GjaZhjZgt
+vuQtP7HlXej8c0TLLmzIgooYntylCEqGUlBPg0nn/p8DsQNqcb+TfpqrVfZoyn7d
+hea3cQzGB5TUlpRS9IU3o8ved31nz+D4B31CJQLboyofzkJmZeFAt6nZIX0juPKS
+Qv1CeNkneR6JTXNwv9ZOa9TGl9yuXiP18uYkvqTEdyxYP5FXC9RNuxqfXBeY8Q31
+aRhsYrU9EqpKDnwzvBIouiLFNM99TDQD3olEO2SSmnm+BN7zZYyQeM2CMw5AezuJ
+hKqYKA4=
+-----END CERTIFICATE-----`,
+												},
+											},
+										},
+									},
+								},
 							},
 						},
 					},
 				},
 			},
 		},
+		// 			},
+		// 		},
+		// 	},
+		// },
+
+		// 		- googleGrpc:
+		//         callCredentials:
+		//         - fromPlugin:
+		//             name: envoy.grpc_credentials.file_based_metadata
+		//             typedConfig:
+		//               '@type': type.googleapis.com/envoy.config.grpc_credential.v3.FileBasedMetadataConfig
+		//               secretData:
+		//                 filename: {{ .DataplaneTokenPath }}
+		//         credentialsFactoryName: envoy.grpc_credentials.file_based_metadata
+		// {{ if .CertBytes}}
+		//         channelCredentials:
+		//           sslCredentials:
+		//             rootCerts:
+		//               inlineBytes: {{ .CertBytes }}
+		// {{ end }}
+		// statPrefix: ads
+		// targetUri: {{ .XdsHost }}:{{ .XdsPort }}
 		StaticResources: &envoy_bootstrap_v3.Bootstrap_StaticResources{
 			Secrets: []*envoy_tls.Secret{
 				{
@@ -244,20 +325,20 @@ func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, erro
 		}
 	}
 
-	if parameters.DataplaneToken != "" {
-		if res.HdsConfig != nil {
-			for _, n := range res.HdsConfig.GrpcServices {
-				n.InitialMetadata = []*envoy_core_v3.HeaderValue{
-					{Key: "authorization", Value: parameters.DataplaneToken},
-				}
-			}
-		}
-		for _, n := range res.DynamicResources.AdsConfig.GrpcServices {
-			n.InitialMetadata = []*envoy_core_v3.HeaderValue{
-				{Key: "authorization", Value: parameters.DataplaneToken},
-			}
-		}
-	}
+	// if parameters.DataplaneToken != "" {
+	// 	if res.HdsConfig != nil {
+	// 		for _, n := range res.HdsConfig.GrpcServices {
+	// 			n.InitialMetadata = []*envoy_core_v3.HeaderValue{
+	// 				{Key: "authorization", Value: parameters.DataplaneToken},
+	// 			}
+	// 		}
+	// 	}
+	// 	for _, n := range res.DynamicResources.AdsConfig.GrpcServices {
+	// 		n.InitialMetadata = []*envoy_core_v3.HeaderValue{
+	// 			{Key: "authorization", Value: parameters.DataplaneToken},
+	// 		}
+	// 	}
+	// }
 	if parameters.DataplaneResource != "" {
 		res.Node.Metadata.Fields["dataplane.resource"] = util_proto.MustNewValueForStruct(parameters.DataplaneResource)
 	}
