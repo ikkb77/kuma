@@ -112,7 +112,7 @@ func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, erro
 					{
 						TargetSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_{
 							GoogleGrpc: &envoy_core_v3.GrpcService_GoogleGrpc{
-								TargetUri:              "host.kuma-cp.system:5678",
+								TargetUri:              "kuma-control-plane.host:5678",
 								StatPrefix:             "ads",
 								CredentialsFactoryName: "envoy.grpc_credentials.file_based_metadata",
 								CallCredentials: []*envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials{
@@ -133,24 +133,24 @@ func genConfig(parameters configParameters) (*envoy_bootstrap_v3.Bootstrap, erro
 											RootCerts: &envoy_core_v3.DataSource{
 												Specifier: &envoy_core_v3.DataSource_InlineString{
 													InlineString: `-----BEGIN CERTIFICATE-----
-MIIDPjCCAiagAwIBAgIRAPt8dtwojk/b5O8H6Jj7G1EwDQYJKoZIhvcNAQELBQAw
-HjEcMBoGA1UEAxMTaG9zdC5rdW1hLWNwLnN5c3RlbTAeFw0yMjA2MDYxMjM4MjJa
-Fw0zMjA2MDMxMjM4MjJaMB4xHDAaBgNVBAMTE2hvc3Qua3VtYS1jcC5zeXN0ZW0w
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDMZx0wjf8EwWKpCB3FFFPR
-ocgWBBDknVphej3yE/kx9rcQRqKErc33jyW3YK1kO8+15MVp9b8W/I1ZYHPqJlDj
-RL0kI/2H+BfU8f2yepRQMiVYQRHMPF7mlVP+Ii/79vS1yX2X2K6x1RoW04PC47hJ
-ksoVjn48toj0wNG/Atcn2jT9cP9+XTFwZAfod7kOG4vdCRAzjCLCs+QPH5csxmi5
-QZUPTI4fsPZ5y6Ng0QP3IvvSCWywj5X92bF7AMiqUM4ulY/3X6Bhe/YGqawwOmIL
-a+QyPlMLfevExWbgkT/aYQfTPZx3N2Wi2WXUI3ZQAPvwWPJTjG+rIuzY8j6Y4JJL
-AgMBAAGjdzB1MA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAP
-BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTygMnfRGxLNWomeDzX3CrVY2XT8DAe
-BgNVHREEFzAVghNob3N0Lmt1bWEtY3Auc3lzdGVtMA0GCSqGSIb3DQEBCwUAA4IB
-AQBETS19f9uAKx77b5y1pxelPg6KqIaAqjWqU6wXTs3QvVoI3KU3f9vxBNI4Txx1
-xG+/T3C435WelibrO3H6+FdX8mGCXtggvZaIBO1BGv7aoi/nDLwM9d2mjsD/n5Ev
-NoMSiNQPiTnNGLGeOfZUTizhwPIeHkEvJaTV493Iyi9VaM/wW0I8tPQFcJzRJ4II
-+HnSaDgC1A04PfSDPkzGu48YwaosS0oTlPtScHd41xeUMrqz5YARnYMwk7p5i4aZ
-gWHtyYk+zJj4HPscfsVyMFWPxDTjoeLOXYJKOoVaU7gbweV0qt1nidKQvN4u7b1j
-O0l1AGF+Fzx6NrXQvs1rS+94
+MIIDSTCCAjGgAwIBAgIQGnycdTxA6NvO5Y0Nk8nSXzANBgkqhkiG9w0BAQsFADAi
+MSAwHgYDVQQDExdrdW1hLWNvbnRyb2wtcGxhbmUuaG9zdDAeFw0yMjA2MDYxMzUz
+MjRaFw0zMjA2MDMxMzUzMjRaMCIxIDAeBgNVBAMTF2t1bWEtY29udHJvbC1wbGFu
+ZS5ob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuEX29VJf8/Aa
+A2SViessHtYsoGnX8Pl0I2/c/8ooSim32CR2y1gL3Y1iymfDN6gH/YGe8bO0r3vd
+11vKgmgP5raYbugvjBQD6Fl9qrRQl+dhYZMSOjlMxK7yt1anjyEWGI4UiwUXiscS
+TkyudmGJimKrBzLXw5QPV4F48YC9MUeFHePr999WqD0jee8XZaoj/kwmoEfxt2Fk
+SxUZajxDsd95Gz7cCJbM7ATcWbWOnTVznhQJDK545KvTa0eb8CI0aiNM4lkktl4/
+fqJ+ObWWI/Gexeh3kZXmqi/wqTZ+ZPnca5L31aGqlZF9gXSgK3Yljq0fA/DjVRza
+J774151BdQIDAQABo3sweTAOBgNVHQ8BAf8EBAMCAqQwEwYDVR0lBAwwCgYIKwYB
+BQUHAwEwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUw5j9TTHlJykR/7nBShnQ
+VmU8C4AwIgYDVR0RBBswGYIXa3VtYS1jb250cm9sLXBsYW5lLmhvc3QwDQYJKoZI
+hvcNAQELBQADggEBAHwxwszlYr3LVxxqWQtDxY3rmeFJbxXAc06RDUYdBazL8sqO
+txI8OyjtEiAkp3QkNGcYshZi9memVvWjbVtU/9JA92R/HEG76Nq94mVKsXZ+Efne
+x4hRjYgkrq5JmVJ1M44JqnCKw5hcDgNYtkgsnP+HUCfXf5HKzx3W/jAchE9rFTY0
+geiRa05YHkUADkPAbn1zp22Crrx0mVfoeP46JjvcUxaLN+Z72EoLspBqpAYEMDuU
+PX6RAbrQsvOf3hy5CBgT+tJJvLKIXqAQINv9UTDVFkteAYYLcMPkJ5G11JpOn3l/
+kcRIMOLyMjwW5jB5oqWk8oDca4ega5u+i7H7CBk=
 -----END CERTIFICATE-----`,
 												},
 											},
@@ -316,7 +316,7 @@ O0l1AGF+Fzx6NrXQvs1rS+94
 				{
 					TargetSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_{
 						GoogleGrpc: &envoy_core_v3.GrpcService_GoogleGrpc{
-							TargetUri:              "host.kuma-cp.system:5678",
+							TargetUri:              "kuma-control-plane.host:5678",
 							StatPrefix:             "ads",
 							CredentialsFactoryName: "envoy.grpc_credentials.file_based_metadata",
 							CallCredentials: []*envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials{
@@ -337,24 +337,24 @@ O0l1AGF+Fzx6NrXQvs1rS+94
 										RootCerts: &envoy_core_v3.DataSource{
 											Specifier: &envoy_core_v3.DataSource_InlineString{
 												InlineString: `-----BEGIN CERTIFICATE-----
-MIIDPjCCAiagAwIBAgIRAPt8dtwojk/b5O8H6Jj7G1EwDQYJKoZIhvcNAQELBQAw
-HjEcMBoGA1UEAxMTaG9zdC5rdW1hLWNwLnN5c3RlbTAeFw0yMjA2MDYxMjM4MjJa
-Fw0zMjA2MDMxMjM4MjJaMB4xHDAaBgNVBAMTE2hvc3Qua3VtYS1jcC5zeXN0ZW0w
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDMZx0wjf8EwWKpCB3FFFPR
-ocgWBBDknVphej3yE/kx9rcQRqKErc33jyW3YK1kO8+15MVp9b8W/I1ZYHPqJlDj
-RL0kI/2H+BfU8f2yepRQMiVYQRHMPF7mlVP+Ii/79vS1yX2X2K6x1RoW04PC47hJ
-ksoVjn48toj0wNG/Atcn2jT9cP9+XTFwZAfod7kOG4vdCRAzjCLCs+QPH5csxmi5
-QZUPTI4fsPZ5y6Ng0QP3IvvSCWywj5X92bF7AMiqUM4ulY/3X6Bhe/YGqawwOmIL
-a+QyPlMLfevExWbgkT/aYQfTPZx3N2Wi2WXUI3ZQAPvwWPJTjG+rIuzY8j6Y4JJL
-AgMBAAGjdzB1MA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAP
-BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTygMnfRGxLNWomeDzX3CrVY2XT8DAe
-BgNVHREEFzAVghNob3N0Lmt1bWEtY3Auc3lzdGVtMA0GCSqGSIb3DQEBCwUAA4IB
-AQBETS19f9uAKx77b5y1pxelPg6KqIaAqjWqU6wXTs3QvVoI3KU3f9vxBNI4Txx1
-xG+/T3C435WelibrO3H6+FdX8mGCXtggvZaIBO1BGv7aoi/nDLwM9d2mjsD/n5Ev
-NoMSiNQPiTnNGLGeOfZUTizhwPIeHkEvJaTV493Iyi9VaM/wW0I8tPQFcJzRJ4II
-+HnSaDgC1A04PfSDPkzGu48YwaosS0oTlPtScHd41xeUMrqz5YARnYMwk7p5i4aZ
-gWHtyYk+zJj4HPscfsVyMFWPxDTjoeLOXYJKOoVaU7gbweV0qt1nidKQvN4u7b1j
-O0l1AGF+Fzx6NrXQvs1rS+94
+MIIDSTCCAjGgAwIBAgIQGnycdTxA6NvO5Y0Nk8nSXzANBgkqhkiG9w0BAQsFADAi
+MSAwHgYDVQQDExdrdW1hLWNvbnRyb2wtcGxhbmUuaG9zdDAeFw0yMjA2MDYxMzUz
+MjRaFw0zMjA2MDMxMzUzMjRaMCIxIDAeBgNVBAMTF2t1bWEtY29udHJvbC1wbGFu
+ZS5ob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuEX29VJf8/Aa
+A2SViessHtYsoGnX8Pl0I2/c/8ooSim32CR2y1gL3Y1iymfDN6gH/YGe8bO0r3vd
+11vKgmgP5raYbugvjBQD6Fl9qrRQl+dhYZMSOjlMxK7yt1anjyEWGI4UiwUXiscS
+TkyudmGJimKrBzLXw5QPV4F48YC9MUeFHePr999WqD0jee8XZaoj/kwmoEfxt2Fk
+SxUZajxDsd95Gz7cCJbM7ATcWbWOnTVznhQJDK545KvTa0eb8CI0aiNM4lkktl4/
+fqJ+ObWWI/Gexeh3kZXmqi/wqTZ+ZPnca5L31aGqlZF9gXSgK3Yljq0fA/DjVRza
+J774151BdQIDAQABo3sweTAOBgNVHQ8BAf8EBAMCAqQwEwYDVR0lBAwwCgYIKwYB
+BQUHAwEwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUw5j9TTHlJykR/7nBShnQ
+VmU8C4AwIgYDVR0RBBswGYIXa3VtYS1jb250cm9sLXBsYW5lLmhvc3QwDQYJKoZI
+hvcNAQELBQADggEBAHwxwszlYr3LVxxqWQtDxY3rmeFJbxXAc06RDUYdBazL8sqO
+txI8OyjtEiAkp3QkNGcYshZi9memVvWjbVtU/9JA92R/HEG76Nq94mVKsXZ+Efne
+x4hRjYgkrq5JmVJ1M44JqnCKw5hcDgNYtkgsnP+HUCfXf5HKzx3W/jAchE9rFTY0
+geiRa05YHkUADkPAbn1zp22Crrx0mVfoeP46JjvcUxaLN+Z72EoLspBqpAYEMDuU
+PX6RAbrQsvOf3hy5CBgT+tJJvLKIXqAQINv9UTDVFkteAYYLcMPkJ5G11JpOn3l/
+kcRIMOLyMjwW5jB5oqWk8oDca4ega5u+i7H7CBk=
 -----END CERTIFICATE-----`,
 											},
 										},
