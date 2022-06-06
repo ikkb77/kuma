@@ -10,6 +10,7 @@ import (
 	"github.com/sethvargo/go-retry"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/kumahq/kuma/pkg/core"
 	core_mesh "github.com/kumahq/kuma/pkg/core/resources/apis/mesh"
 	core_manager "github.com/kumahq/kuma/pkg/core/resources/manager"
 	core_store "github.com/kumahq/kuma/pkg/core/resources/store"
@@ -130,6 +131,7 @@ func extractCredential(ctx context.Context) (xds_auth.Credential, error) {
 		if len(values) != 1 {
 			return "", errors.Errorf("request must have exactly 1 %q header, got %d", authorization, len(values))
 		}
+		core.Log.Info("TEST_LOG", "value[0] - token", values[0])
 		return values[0], nil
 	}
 	return "", nil
