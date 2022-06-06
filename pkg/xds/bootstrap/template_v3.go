@@ -314,9 +314,53 @@ O0l1AGF+Fzx6NrXQvs1rS+94
 			SetNodeOnFirstMessageOnly: true,
 			GrpcServices: []*envoy_core_v3.GrpcService{
 				{
-					TargetSpecifier: &envoy_core_v3.GrpcService_EnvoyGrpc_{
-						EnvoyGrpc: &envoy_core_v3.GrpcService_EnvoyGrpc{
-							ClusterName: "ads_cluster",
+					TargetSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_{
+						GoogleGrpc: &envoy_core_v3.GrpcService_GoogleGrpc{
+							TargetUri:              "host.kuma-cp.system:5678",
+							StatPrefix:             "ads",
+							CredentialsFactoryName: "envoy.grpc_credentials.file_based_metadata",
+							CallCredentials: []*envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials{
+								{
+									CredentialSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_FromPlugin{
+										FromPlugin: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin{
+											Name: "envoy.grpc_credentials.file_based_metadata",
+											ConfigType: &envoy_core_v3.GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig{
+												TypedConfig: util_proto.MustMarshalAny(&test),
+											},
+										},
+									},
+								},
+							},
+							ChannelCredentials: &envoy_core_v3.GrpcService_GoogleGrpc_ChannelCredentials{
+								CredentialSpecifier: &envoy_core_v3.GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials{
+									SslCredentials: &envoy_core_v3.GrpcService_GoogleGrpc_SslCredentials{
+										RootCerts: &envoy_core_v3.DataSource{
+											Specifier: &envoy_core_v3.DataSource_InlineString{
+												InlineString: `-----BEGIN CERTIFICATE-----
+MIIDPjCCAiagAwIBAgIRAPt8dtwojk/b5O8H6Jj7G1EwDQYJKoZIhvcNAQELBQAw
+HjEcMBoGA1UEAxMTaG9zdC5rdW1hLWNwLnN5c3RlbTAeFw0yMjA2MDYxMjM4MjJa
+Fw0zMjA2MDMxMjM4MjJaMB4xHDAaBgNVBAMTE2hvc3Qua3VtYS1jcC5zeXN0ZW0w
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDMZx0wjf8EwWKpCB3FFFPR
+ocgWBBDknVphej3yE/kx9rcQRqKErc33jyW3YK1kO8+15MVp9b8W/I1ZYHPqJlDj
+RL0kI/2H+BfU8f2yepRQMiVYQRHMPF7mlVP+Ii/79vS1yX2X2K6x1RoW04PC47hJ
+ksoVjn48toj0wNG/Atcn2jT9cP9+XTFwZAfod7kOG4vdCRAzjCLCs+QPH5csxmi5
+QZUPTI4fsPZ5y6Ng0QP3IvvSCWywj5X92bF7AMiqUM4ulY/3X6Bhe/YGqawwOmIL
+a+QyPlMLfevExWbgkT/aYQfTPZx3N2Wi2WXUI3ZQAPvwWPJTjG+rIuzY8j6Y4JJL
+AgMBAAGjdzB1MA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAP
+BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTygMnfRGxLNWomeDzX3CrVY2XT8DAe
+BgNVHREEFzAVghNob3N0Lmt1bWEtY3Auc3lzdGVtMA0GCSqGSIb3DQEBCwUAA4IB
+AQBETS19f9uAKx77b5y1pxelPg6KqIaAqjWqU6wXTs3QvVoI3KU3f9vxBNI4Txx1
+xG+/T3C435WelibrO3H6+FdX8mGCXtggvZaIBO1BGv7aoi/nDLwM9d2mjsD/n5Ev
+NoMSiNQPiTnNGLGeOfZUTizhwPIeHkEvJaTV493Iyi9VaM/wW0I8tPQFcJzRJ4II
++HnSaDgC1A04PfSDPkzGu48YwaosS0oTlPtScHd41xeUMrqz5YARnYMwk7p5i4aZ
+gWHtyYk+zJj4HPscfsVyMFWPxDTjoeLOXYJKOoVaU7gbweV0qt1nidKQvN4u7b1j
+O0l1AGF+Fzx6NrXQvs1rS+94
+-----END CERTIFICATE-----`,
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
